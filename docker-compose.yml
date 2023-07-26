@@ -7,9 +7,19 @@
 #       - postgres:/var/lib/postgresql/data/
 #     env_file:
 #       - ./.env
+# version: '3.9'
+# services:
+#   bot:
+#     build: .
+#      env_file:
+#       - ./.env
 version: '3.9'
 services:
   bot:
     build: .
-     env_file:
-      - ./.env
+    container_name: bot
+    command: python bot.py
+    ports:
+      - 80:80
+    volumes:
+      - ./:/app

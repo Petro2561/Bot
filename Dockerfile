@@ -24,9 +24,17 @@
 # # Выполнить запуск сервера разработки при старте контейнера.
 # CMD ["python", "bot.py"] 
 
-FROM python:3.9
+# FROM python:3.10
+# WORKDIR /app
+# COPY requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
+# COPY . .
+# RUN cd utils
+# CMD python bot.py
+
+
+FROM python:3.10
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD python bot.py
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
