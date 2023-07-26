@@ -60,3 +60,4 @@ jobs:
           script: |
             cd Bot
             sudo docker build -t bot .
+пш
