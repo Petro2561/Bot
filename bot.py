@@ -8,8 +8,8 @@ from aiogram.types import InlineKeyboardButton
 # from encryption.utils import aes, caesar_code, morse_code, qr_code, vigenere
 from utils import aes, caesar_code, morse_code, qr_code, vigenere
 from utils.validators import (validate_aes, validate_caesar,
-                                   validate_morse, validate_qr,
-                                   validate_vigenere)
+                              validate_morse, validate_qr,
+                              validate_vigenere)
 
 logging.basicConfig(level=logging.INFO)
 

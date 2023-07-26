@@ -1,0 +1,14 @@
+[flake8]
+max-line-length = 79
+extend-exclude =
+    */migrations/,
+    venv/,
+    env/
+ignore =
+    # line break before binary operator
+    W503,
+    R505,
+    F401,
+    R504,
+    E231,
+    F821
