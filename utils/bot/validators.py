@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from .aes import decrypt
+
 
 list_value_caesar = ['а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к',
                      'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х',

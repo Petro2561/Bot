@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardButton
 # from encryption.utils import aes, caesar_code, morse_code, qr_code, vigenere
 import aes, caesar_code, morse_code, qr_code, vigenere
-from .validators import (validate_aes, validate_caesar,
+from bot.validators import (validate_aes, validate_caesar,
                                    validate_morse, validate_qr,
                                    validate_vigenere)
 
