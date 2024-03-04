@@ -5,18 +5,19 @@ from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardButton
-# from encryption.utils import aes, caesar_code, morse_code, qr_code, vigenere
 from utils import aes, caesar_code, morse_code, qr_code, vigenere
 from utils.validators import (validate_aes, validate_caesar,
                               validate_morse, validate_qr,
                               validate_vigenere)
+from config import BOT_TOKEN
+
 
 logging.basicConfig(level=logging.INFO)
 
 
 API_TOKEN = "6390553725:AAEAXrhGHklm4_EfYI3HL0tdKxIJjdzShdI"
 
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
@@ -36,7 +37,6 @@ cipher_functions = {
 }
 
 
-# Обработчик команды /start
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -45,7 +45,6 @@ async def start(message: types.Message):
     await message.answer("Выберите шифр:", reply_markup=keyboard)
 
 
-# Обработчик выбора шифра
 @dp.message_handler(
     lambda message: message.text
     in ["Цезарь", "Виженер", "QR-Code", "Азбука Морзе", "AES"]
@@ -68,17 +67,14 @@ async def choose_cipher(message: types.Message, state: FSMContext):
         await message.reply("Выберите режим:", reply_markup=keyboard)
         await types.ChatActions.typing()
 
-        # Сохранение выбранного шифра в состоянии пользователя
         await state.update_data(cipher=cipher)
 
 
-# Обработчик нажатия на кнопку режима
 @dp.callback_query_handler(lambda c: c.data in ["encrypt", "decrypt"])
 async def choose_mode(callback_query: types.CallbackQuery, state: FSMContext):
     mode = callback_query.data
     choise = 'Шифрование' if mode == 'encypt' else 'Дешифрование'
 
-    # Сохранение выбранного режима в состоянии пользователя
     await state.update_data(mode=mode)
 
     await callback_query.message.answer(f"Вы выбрали режим {choise}")
@@ -87,13 +83,11 @@ async def choose_mode(callback_query: types.CallbackQuery, state: FSMContext):
     await state.set_state("input_text")
 
 
-# Обработчик ввода текста
 @dp.message_handler(state="input_text")
 async def process_text(message: types.Message, state: FSMContext):
     text = message.text
     await state.update_data(text=text)
 
-    # Получение данных из состояния пользователя
     data = await state.get_data()
     cipher = data.get("cipher")
     mode = data.get("mode")

@@ -23,7 +23,7 @@ def decrypt(text, key):
     key = SHA256.new(key).digest()
     iv = text[: AES.block_size]
     decryptor = AES.new(key, AES.MODE_CBC, iv)
-    data = decryptor.decrypt(text[AES.block_size:])
+    data = decryptor.decrypt(text[AES.block_size :])
     padding = data[-1]
     if data[-padding:] != bytes([padding]) * padding:
         raise ValueError("Invalid padding...")

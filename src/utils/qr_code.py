@@ -9,7 +9,7 @@ import qrcode
 
 
 def qr_code_generation(text: str) -> str:
-    # Создание QR-кода на основе заданного текста
+    """Создание QR-кода на основе заданного текста"""
     img = qrcode.make(text)
     # Создание буфера для сохранения изображения
     buffered = BytesIO()
