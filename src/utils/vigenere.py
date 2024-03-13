@@ -1,7 +1,7 @@
 NOT_DEFINED_LANG = "nd"
 
 
-def vigenere_codec(text: str, key: str, codec: int = 1):
+def vigenere_codec(text: str, key: str, is_encryption: bool = True):
     """
     Код Виженера.
     Для повышения устойчивости все слова переводятся в верхний регистр,
@@ -11,7 +11,10 @@ def vigenere_codec(text: str, key: str, codec: int = 1):
     опционально: параметр codec для определения
     направления шифрования (1 - шифровка(умолч.)/ -1 - дешифровка),
     """
-
+    if is_encryption:
+        codec = 1
+    else:
+        codec = -1
     result = ""
     key = key.upper()
     # Словарь алфавитов.
@@ -59,9 +62,9 @@ def vigenere_codec(text: str, key: str, codec: int = 1):
     return result
 
 
-def encode(text: str, key: str):
+def encode(text: str, key: str, is_encryption=None):
     return vigenere_codec(text, key, 1)
 
 
-def decode(text: str, key: str):
+def decode(text: str, key: str, is_encryption=None):
     return vigenere_codec(text, key, -1)

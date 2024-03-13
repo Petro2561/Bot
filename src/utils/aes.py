@@ -5,7 +5,7 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
 
-def encrypt(text, key):
+def encrypt(text, key, is_encryption=None):
     text = text.encode("utf-8")
     key = key.encode("utf-8")
     key = SHA256.new(key).digest()
@@ -17,7 +17,7 @@ def encrypt(text, key):
     return base64.b64encode(data).decode("latin-1")
 
 
-def decrypt(text, key):
+def decrypt(text, key, is_encryption=None):
     key = key.encode("utf-8")
     text = base64.b64decode(text.encode("latin-1"))
     key = SHA256.new(key).digest()

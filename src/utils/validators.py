@@ -218,7 +218,7 @@ def validate_caesar(text, key, is_encryption):
         raise ValidationError("Слишком большой текст")
     for char in text:
         if char.lower() not in list_value_caesar:
-            raise ValidationError(f"Вы ввели недопустимый символ {char}")
+            raise ValidationError(f"Вы ввели недопустимый символ {char} в тексте")
     if text == "":
         raise ValidationError("Вы не ввели ни одного символа.")
     if not key:
@@ -231,7 +231,7 @@ def validate_caesar(text, key, is_encryption):
         raise ValidationError("Вы не ввели ни одного символа.")
 
 
-def validate_morse(text, key, is_encryption):
+def validate_morse(text, is_encryption):
     """Валидация кода Морзе"""
     if is_encryption:
         if len(text) > 2000:
@@ -244,10 +244,8 @@ def validate_morse(text, key, is_encryption):
         raise ValidationError("Вы не ввели ни одного символа.")
 
 
-def validate_qr(text, key, is_encryption):
+def validate_qr(text):
     """ "Валидация QR-кода."""
-    if not is_encryption:
-        raise ValidationError("Доступно только шифрование")
     if len(text) > 2000:
         raise ValidationError("Слишком большой текст")
     if text == "":
@@ -291,10 +289,3 @@ def validate_aes(text, key, is_encryption):
         raise ValidationError("Слишком длинный ключ")
     if key == "":
         raise ValidationError("Вы не ввели ни одного символа.")
-    if not is_encryption:
-        try:
-            decrypt(text, key)
-        except ValueError:
-            raise ValidationError(
-                "Некорректно закодированный текст, невозможно расшифровать."
-            )
