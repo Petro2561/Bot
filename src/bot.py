@@ -4,10 +4,20 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
-from aiogram.types import InlineKeyboardButton
-from constants import CIPHER_FUNCTIONS_WITH_KEY, CIPHER_FUNCTIONS_WITHOUT_DECRYPT, CIPHER_FUNCTIONS_WITHOUT_KEY, MISTAKE_OF_ENCRYPTION, NEW_START_PHRASE, SHIFR_INPUT_TEXT, START_PHRASE, VALIDATE_DICTIONARY
-from config import config
 
+from config import config
+from constants import (
+    CIPHER_FUNCTIONS_WITH_KEY,
+    CIPHER_FUNCTIONS_WITHOUT_DECRYPT,
+    CIPHER_FUNCTIONS_WITHOUT_KEY,
+    MISTAKE_OF_ENCRYPTION,
+    MODES_OF_ENCRYPTION,
+    NEW_START_PHRASE,
+    SHIFR_INPUT_TEXT,
+    START_PHRASE,
+    VALIDATE_DICTIONARY,
+)
+from keybords import inline
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,13 +28,11 @@ storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
 
-
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    keyboard.add(*["Цезарь", "Виженер", "QR-Code", "Азбука Морзе", "AES"])
     await message.reply(START_PHRASE)
-    await message.answer("Выберите шифр:", reply_markup=keyboard)
+    await message.answer("Выберите шифр:", reply_markup=inline.keyboard_start)
+
 
 async def text_input(message: types.Message, cipher: str, state: FSMContext) -> None:
     await message.reply(SHIFR_INPUT_TEXT)
@@ -32,22 +40,20 @@ async def text_input(message: types.Message, cipher: str, state: FSMContext) -> 
     await state.set_state("input_text")
 
 
-@dp.message_handler(
-    lambda message: message.text in CIPHER_FUNCTIONS_WITH_KEY
-    or message.text in CIPHER_FUNCTIONS_WITHOUT_KEY
-    or message.text in CIPHER_FUNCTIONS_WITHOUT_DECRYPT
+@dp.callback_query_handler(
+    lambda cipher: cipher.data in CIPHER_FUNCTIONS_WITH_KEY
+    or cipher.data in CIPHER_FUNCTIONS_WITHOUT_KEY
+    or cipher.data in CIPHER_FUNCTIONS_WITHOUT_DECRYPT
 )
-async def choose_cipher(message: types.Message, state: FSMContext):
-    cipher = message.text
+async def choose_cipher(callback_query: types.CallbackQuery, state: FSMContext):
+    cipher = callback_query.data
+    await callback_query.message.answer(f"Вы выбрали режим {cipher}")
     if cipher in CIPHER_FUNCTIONS_WITHOUT_DECRYPT:
-        await text_input(message=message, cipher=cipher, state=state)
+        await text_input(message=callback_query.message, cipher=cipher, state=state)
     else:
-        keyboard = types.InlineKeyboardMarkup(row_width=2)
-        keyboard.add(
-            InlineKeyboardButton("Шифрование", callback_data="encrypt"),
-            InlineKeyboardButton("Дешифрование", callback_data="decrypt"),
+        await callback_query.message.reply(
+            "Выберите режим:", reply_markup=inline.keyboard_choose_mode
         )
-        await message.reply("Выберите режим:", reply_markup=keyboard)
         await types.ChatActions.typing()
         await state.update_data(cipher=cipher)
 
@@ -68,26 +74,32 @@ async def process_cipher_result(message: types.Message, result, state: FSMContex
         await message.answer(f"{error} {NEW_START_PHRASE}")
 
 
-@dp.callback_query_handler(lambda c: c.data in ["encrypt", "decrypt"])
+@dp.callback_query_handler(lambda choice: choice.data in MODES_OF_ENCRYPTION)
 async def choose_mode(callback_query: types.CallbackQuery, state: FSMContext):
     mode = callback_query.data
-    choice = "Шифрование" if mode == "encrypt" else "Дешифрование"
     await state.update_data(mode=mode)
-    await callback_query.message.answer(f"Вы выбрали режим {choice}")
+    await callback_query.message.answer(f"Вы выбрали режим {mode}")
     await callback_query.message.answer("Введите текст для обработки:")
     await callback_query.message.edit_reply_markup(reply_markup=None)
     await state.set_state("input_text")
 
 
 @dp.message_handler(state="input_text")
+async def input_key(message: types.Message, state: FSMContext):
+    await state.update_data(text=message.text)
+    await state.set_state("input_key")
+    await message.reply("Введите ключ")
+
+
+@dp.message_handler(state="input_key")
 async def process_text(message: types.Message, state: FSMContext):
-    text = message.text
-    await state.update_data(text=text)
+    key = message.text
     data = await state.get_data()
     cipher = data.get("cipher")
     mode = data.get("mode")
-    is_encryption = False if mode == 'decrypt' else True
-    
+    text = data.get("text")
+    is_encryption = False if mode == "Дешифрование" else True
+
     try:
         if cipher in CIPHER_FUNCTIONS_WITHOUT_DECRYPT:
             VALIDATE_DICTIONARY.get(cipher)(text=text)
@@ -98,30 +110,36 @@ async def process_text(message: types.Message, state: FSMContext):
             result = CIPHER_FUNCTIONS_WITHOUT_KEY.get(cipher).get(mode)(text)
             await process_cipher_result(message, result, state)
         else:
-            await state.set_state("input_key")
-            await message.reply("Введите ключ")
+            VALIDATE_DICTIONARY.get(cipher)(
+                text=text, key=key, is_encryption=is_encryption
+            )
+            result = CIPHER_FUNCTIONS_WITH_KEY.get(cipher).get(mode)(
+                text=text, key=key, is_encryption=is_encryption
+            )
+            await process_cipher_result(message, result, state)
     except Exception as error:
         logger.error(f"{MISTAKE_OF_ENCRYPTION}: {error}")
         await state.finish()
-        await message.answer(f"{error} {NEW_START_PHRASE}") 
-
-@dp.message_handler(state="input_key")
-async def input_key(message: types.Message, state: FSMContext):
-    key = message.text
-    data = await state.get_data()
-    cipher = data.get("cipher")
-    mode = data.get("mode")
-    text = data.get("text")
-    is_encryption = False if mode == 'decrypt' else True
-    try:
-        VALIDATE_DICTIONARY.get(cipher)(text=text, key=key, is_encryption=is_encryption)
-        result = CIPHER_FUNCTIONS_WITH_KEY.get(cipher).get(mode)(text=text, key=key, is_encryption=is_encryption)
-        await process_cipher_result(message, result, state)
-    except Exception as error:
-        logger.error(f"Error processing cipher: {error}")
-        await state.finish()
         await message.answer(f"{error} {NEW_START_PHRASE}")
 
-    
+
+# @dp.message_handler(state="input_key")
+# async def input_key(message: types.Message, state: FSMContext):
+#     key = message.text
+#     data = await state.get_data()
+#     cipher = data.get("cipher")
+#     mode = data.get("mode")
+#     text = data.get("text")
+#     is_encryption = False if mode == 'Дешифрование' else True
+#     try:
+#         VALIDATE_DICTIONARY.get(cipher)(text=text, key=key, is_encryption=is_encryption)
+#         result = CIPHER_FUNCTIONS_WITH_KEY.get(cipher).get(mode)(text=text, key=key, is_encryption=is_encryption)
+#         await process_cipher_result(message, result, state)
+#     except Exception as error:
+#         logger.error(f"{MISTAKE_OF_ENCRYPTION}: {error}")
+#         await state.finish()
+#         await message.answer(f"{error} {NEW_START_PHRASE}")
+
+
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
