@@ -8,8 +8,7 @@ buttons = [
     types.InlineKeyboardButton(text="Азбука Морзе", callback_data="Азбука Морзе"),
     types.InlineKeyboardButton(text="AES", callback_data="AES"),
 ]
-for button in buttons:
-    keyboard_start.row(button)
+keyboard_start.add(*buttons)
 
 
 keyboard_choose_mode = types.InlineKeyboardMarkup(row_width=2)

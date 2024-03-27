@@ -1,11 +1,18 @@
-from pydantic import SecretStr
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from dataclasses import dataclass
+from environs import Env
 
 
-class Settings(BaseSettings):
-    bot_token: SecretStr
+@dataclass
+class TgBot:
+    token: str
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+@dataclass
+class Config:
+    tg_bot: TgBot
 
 
-config = Settings()
+def load_config(path: str | None = None) -> Config:
+    env = Env()
+    env.read_env(path)
+    return Config(tg_bot=TgBot(token=env('BOT_TOKEN')))

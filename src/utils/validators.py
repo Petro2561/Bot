@@ -224,7 +224,7 @@ def validate_caesar(text, key, is_encryption):
     if not key:
         raise ValidationError("Необходимо ввести ключ")
     if key.isdigit() is False:
-        raise ValidationError(f"{key} не является числом.")
+        raise ValidationError(f"{key} должен быть числом.")
     if int(key) > 15:
         raise ValidationError("Слишком большой ключ")
     if key == "":
@@ -239,6 +239,9 @@ def validate_morse(text, is_encryption):
     else:
         if len(text) > 15000:
             raise ValidationError("Слишком большой текст")
+    for letter in text:
+        if letter not in list_value_morse:
+            raise ValidationError("Вы ввели недопустимый символ. Наша машина подерживает только русские буквы.")
 
     if text == "":
         raise ValidationError("Вы не ввели ни одного символа.")

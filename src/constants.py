@@ -12,6 +12,12 @@ SHIFR_INPUT_TEXT = "Введите текст для шифрования:"
 NEW_START_PHRASE = "Для нового шифрования нажмите /start"
 MISTAKE_OF_ENCRYPTION = "Ошибка шифрования"
 MODES_OF_ENCRYPTION = ["Шифрование", "Дешифрование"]
+CHOOSE_CHIPHER = "Выберите шифр:"
+CHOOSE_MODE = "Выберите режим:"
+YOUR_CHOOSE_MODE = "Вы выбрали режим"
+INPUT_TEXT = "Введите текст для обработки:"
+INPUT_KEY = "Введите ключ:"
+INTERNAL_ERROR = "Что-то пошло не так, попробуйте еще раз."
 CIPHER_FUNCTIONS_WITH_KEY = {
     "Цезарь": {
         "Шифрование": caesar_code.encryption_mixin,
